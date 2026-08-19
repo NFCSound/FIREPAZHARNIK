@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>NFCSOUND | Pazharnik</title>
   <style>
     * {
@@ -14,26 +14,32 @@
       user-select: none;
     }
 
-    body, html {
+    html, body {
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #050505;
+      background-color: #000;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    .container {
+    /* Главная Flex-оболочка для идеального распределения по высоте */
+    .wrapper {
       position: relative;
       width: 100%;
       height: 100vh;
+      height: 100dvh; /* Учитывает реальную высоту экрана мобильного браузера */
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: space-between;
+      padding: 10vh 0 8vh 0; /* Отступы сверху и снизу */
       cursor: pointer;
+      z-index: 2;
     }
 
+    /* Размытый задний фон */
     .bg-blur {
-      position: absolute;
+      position: fixed;
       top: -10%;
       left: -10%;
       width: 120%;
@@ -41,83 +47,91 @@
       background-image: url('image.png');
       background-size: cover;
       background-position: center;
-      filter: blur(45px) brightness(0.5);
+      filter: blur(40px) brightness(0.5);
       z-index: 1;
       transform: scale(1.1);
     }
 
+    /* Контейнер картинки */
     .avatar-wrapper {
       position: relative;
       z-index: 2;
-      transform: translateY(-8vh);
-      transition: transform 0.1s ease, filter 0.1s ease;
+      transition: transform 0.1s ease;
     }
 
+    /* Картинка как на оригинале */
     .avatar {
-      width: 78vw;
-      height: 78vw;
-      max-width: 360px;
-      max-height: 360px;
+      width: 86vw;
+      height: 86vw;
+      max-width: 380px;
+      max-height: 380px;
       border-radius: 50%;
       object-fit: cover;
-      box-shadow: 0 0 50px rgba(255, 69, 0, 0.6), 0 0 100px rgba(255, 0, 0, 0.3);
       display: block;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
     }
 
-    .container:active .avatar-wrapper {
-      transform: translateY(-8vh) scale(0.95);
-      filter: brightness(1.2);
+    .wrapper:active .avatar-wrapper {
+      transform: scale(0.96);
     }
 
+    /* Кнопка "ЗАГЛУШИТЬ" строго в стиле оригинала */
     .mute-btn {
-      position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      z-index: 10;
-      padding: 14px 28px;
+      position: relative;
+      z-index: 3;
+      width: 78vw;
+      max-width: 310px;
+      padding: 16px 0;
       font-size: 16px;
       font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
       color: #ffffff;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 40px;
       cursor: pointer;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      text-decoration: none;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
     }
 
+    /* Появление кнопки */
     .mute-btn.visible {
       opacity: 1;
       visibility: visible;
-      transform: translateX(-50%) translateY(0);
+      transform: translateY(0);
     }
 
     .mute-btn:active {
-      transform: translateX(-50%) scale(0.95);
-      background: rgba(255, 255, 255, 0.25);
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.22);
     }
   </style>
 </head>
 <body>
 
-  <div class="container" id="click-area">
-    <div class="bg-blur"></div>
+  <!-- Задний фон -->
+  <div class="bg-blur"></div>
 
+  <!-- Экранный слой -->
+  <div class="wrapper" id="click-area">
+    <!-- Картинка сверху -->
     <div class="avatar-wrapper">
       <img src="image.png" alt="Pazharnik" class="avatar">
     </div>
 
+    <!-- Кнопка снизу -->
     <button id="mute-button" class="mute-btn">
-      Заглушить 🔇
+      🔊 ЗАГЛУШИТЬ
     </button>
   </div>
 
@@ -128,7 +142,6 @@
     const audio = document.getElementById('alarm-sound');
     const muteBtn = document.getElementById('mute-button');
 
-    // Клик по экрану
     clickArea.addEventListener('click', (e) => {
       if (e.target === muteBtn || muteBtn.contains(e.target)) return;
 
@@ -136,15 +149,13 @@
         audio.play().then(() => {
           muteBtn.classList.add('visible');
         }).catch(err => {
-          console.log("Ошибка воспроизведения:", err);
+          console.log("Ошибка автовоспроизведения:", err);
         });
       }
     });
 
-    // Нажатие на кнопку
     muteBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); 
-      // Музыка НЕ останавливается, просто переход:
+      e.stopPropagation();
       window.location.href = "https://t.me/WanTime_official";
     });
   </script>
