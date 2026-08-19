@@ -3,49 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Внимание, пожарная тревога!</title>
+  <title>NFCSOUND | Pazharnik</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
     }
-    body {
-      background-color: #0a0a0a;
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #050505;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      user-select: none;
-      overflow: hidden;
     }
-    img {
-      max-width: 85vw;
-      max-height: 85vh;
+
+    .bg-blur {
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 120%;
+      height: 120%;
+      background-image: url('image.png');
+      background-size: cover;
+      background-position: center;
+      filter: blur(45px) brightness(0.5);
+      z-index: 1;
+      transform: scale(1.1);
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      z-index: 2;
+      transform: translateY(-8vh);
+      transition: transform 0.1s ease, filter 0.1s ease;
+    }
+
+    .avatar {
+      width: 78vw;
+      height: 78vw;
+      max-width: 360px;
+      max-height: 360px;
       border-radius: 50%;
-      box-shadow: 0 0 60px rgba(255, 69, 0, 0.7);
-      transition: transform 0.1s ease;
+      object-fit: cover;
+      box-shadow: 0 0 50px rgba(255, 69, 0, 0.6), 0 0 100px rgba(255, 0, 0, 0.3);
+      display: block;
     }
-    body:active img {
-      transform: scale(0.97);
+
+    .container:active .avatar-wrapper {
+      transform: translateY(-8vh) scale(0.95);
+      filter: brightness(1.2);
+    }
+
+    .mute-btn {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      z-index: 10;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 30px;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mute-btn.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .mute-btn:active {
+      transform: translateX(-50%) scale(0.95);
+      background: rgba(255, 255, 255, 0.25);
     }
   </style>
 </head>
 <body>
 
-  <!-- Укажите точное название вашей картинки -->
-  <img src="image.png" alt="Fire Alarm">
+  <div class="container" id="click-area">
+    <div class="bg-blur"></div>
 
-  <!-- Укажите точное название вашего аудиофайла -->
-  <audio id="alarm-sound" src="alarm.mp3"></audio>
+    <div class="avatar-wrapper">
+      <img src="image.png" alt="Pazharnik" class="avatar">
+    </div>
+
+    <button id="mute-button" class="mute-btn">
+      Заглушить 🔇
+    </button>
+  </div>
+
+  <audio id="alarm-sound" src="alarm.mp3" preload="auto" loop></audio>
 
   <script>
+    const clickArea = document.getElementById('click-area');
     const audio = document.getElementById('alarm-sound');
+    const muteBtn = document.getElementById('mute-button');
 
-    document.body.addEventListener('click', () => {
-      audio.currentTime = 0; // Сбрасывает звук на начало при повторном клике
-      audio.play();
+    // Клик по экрану
+    clickArea.addEventListener('click', (e) => {
+      if (e.target === muteBtn || muteBtn.contains(e.target)) return;
+
+      if (audio.paused) {
+        audio.play().then(() => {
+          muteBtn.classList.add('visible');
+        }).catch(err => {
+          console.log("Ошибка воспроизведения:", err);
+        });
+      }
+    });
+
+    // Нажатие на кнопку
+    muteBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); 
+      // Музыка НЕ останавливается, просто переход:
+      window.location.href = "https://t.me/WanTime_official";
     });
   </script>
 </body>
