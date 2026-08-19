@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Внимание, пожарная тревога!</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #0a0a0a;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      overflow: hidden;
+    }
+    img {
+      max-width: 85vw;
+      max-height: 85vh;
+      border-radius: 50%;
+      box-shadow: 0 0 60px rgba(255, 69, 0, 0.7);
+      transition: transform 0.1s ease;
+    }
+    body:active img {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Укажите точное название вашей картинки -->
+  <img src="image.png" alt="Fire Alarm">
+
+  <!-- Укажите точное название вашего аудиофайла -->
+  <audio id="alarm-sound" src="alarm.mp3"></audio>
+
+  <script>
+    const audio = document.getElementById('alarm-sound');
+
+    document.body.addEventListener('click', () => {
+      audio.currentTime = 0; // Сбрасывает звук на начало при повторном клике
+      audio.play();
+    });
+  </script>
+</body>
+</html>
