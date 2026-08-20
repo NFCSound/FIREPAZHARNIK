@@ -9,8 +9,14 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      /* Отключает синее/серое выделение при тапе на смартфонах */
       -webkit-tap-highlight-color: transparent;
+      /* ПОЛНЫЙ ЗАПРЕТ ВЫДЕЛЕНИЯ И КОНТЕКСТНЫХ МЕНЮ */
       -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
       user-select: none;
     }
 
@@ -51,18 +57,21 @@
       transform: scale(1.1);
     }
 
-    /* Контейнер аватарки */
+    /* Контейнер аватарки с НОВОЙ логикой анимации */
     .avatar-wrapper {
       position: relative;
       z-index: 2;
-      /* Плавный замер анимации возврата (0.12s вместо 0.05s) */
-      transition: transform 0.12s cubic-bezier(0.1, 0.9, 0.2, 1);
+      /* Плавный отскок назад (то же время, что и в CSS-переменной JS) */
+      transition: transform 0.1s cubic-bezier(0.1, 0.9, 0.2, 1);
       will-change: transform;
+      --tap-time: 0s; /* Переменная для JS, чтобы регулировать скорость замятия */
     }
 
-    /* Быстрый класс сжатия, управляемый через JS */
-    .avatar-wrapper.pressed {
-      transform: scale(0.93);
+    /* ЗАЖАТИЕ (Анимация только пока палец давит) */
+    .avatar-wrapper:active {
+      transform: scale(0.93); /* Глубина замятия */
+      /* Используем CSS-переменную, чтобы JS мог менять скорость замятия в зависимости от скорости клика */
+      transition: transform var(--tap-time) cubic-bezier(0.1, 0.9, 0.2, 1);
     }
 
     .avatar {
@@ -74,6 +83,9 @@
       object-fit: cover;
       display: block;
       box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+      /* Запрещает зажимать и перетаскивать саму картинку */
+      -webkit-user-drag: none;
+      user-drag: none;
     }
 
     /* Кнопка "ЗАГЛУШИТЬ" */
@@ -139,27 +151,12 @@
     const audio = document.getElementById('alarm-sound');
     const muteBtn = document.getElementById('mute-button');
 
-    // Функция пружинящего клика
-    function triggerPulse() {
-      avatarContainer.classList.remove('pressed');
-      void avatarContainer.offsetWidth; 
-      avatarContainer.classList.add('pressed');
-
-      setTimeout(() => {
-        avatarContainer.classList.remove('pressed');
-      }, 120); // 120 миллисекунд — более мягкая и плавная анимация
-    }
-
-    // Обработка быстрой анимации при любом прикосновении
+    // Логика зажатия реализована на CSS (:active), JS только управляет скоростью
     clickArea.addEventListener('pointerdown', (e) => {
       if (e.target === muteBtn || muteBtn.contains(e.target)) return;
-      triggerPulse();
-    });
 
-    // Воспроизведение аудио
-    clickArea.addEventListener('click', (e) => {
-      if (e.target === muteBtn || muteBtn.contains(e.target)) return;
-
+      // Мгновенный перезапуск звука
+      audio.currentTime = 0;
       if (audio.paused) {
         audio.play().then(() => {
           muteBtn.classList.add('visible');
@@ -167,6 +164,19 @@
           console.log("Ошибка воспроизведения:", err);
         });
       }
+
+      // Настройка времени замятия в CSS ( var(--tap-time) ), чтобы при зажатии было мягче
+      avatarContainer.style.setProperty('--tap-time', '0.1s');
+    });
+
+    clickArea.addEventListener('pointerup', () => {
+        // Убираем плавность, когда палец отпустили, чтобы кнопка «отскочила» сразу
+        avatarContainer.style.setProperty('--tap-time', '0s');
+    });
+
+    // Дополнительный фикс: если палец ушёл за экран, тоже «отскакиваем» сразу
+    clickArea.addEventListener('pointerleave', () => {
+        avatarContainer.style.setProperty('--tap-time', '0s');
     });
 
     // Переход по кнопке
