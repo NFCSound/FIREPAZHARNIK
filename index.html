@@ -55,8 +55,8 @@
     .avatar-wrapper {
       position: relative;
       z-index: 2;
-      /* Ультрабыстрая анимация возврата */
-      transition: transform 0.05s cubic-bezier(0.1, 0.9, 0.2, 1);
+      /* Плавный замер анимации возврата (0.12s вместо 0.05s) */
+      transition: transform 0.12s cubic-bezier(0.1, 0.9, 0.2, 1);
       will-change: transform;
     }
 
@@ -139,16 +139,15 @@
     const audio = document.getElementById('alarm-sound');
     const muteBtn = document.getElementById('mute-button');
 
-    // Функция мгновенного пружинящего клика
+    // Функция пружинящего клика
     function triggerPulse() {
       avatarContainer.classList.remove('pressed');
-      // Принудительный сброс кадров браузера для перезапуска анимации
       void avatarContainer.offsetWidth; 
       avatarContainer.classList.add('pressed');
 
       setTimeout(() => {
         avatarContainer.classList.remove('pressed');
-      }, 50); // 50 миллисекунд — сочный и быстрый отклик
+      }, 120); // 120 миллисекунд — более мягкая и плавная анимация
     }
 
     // Обработка быстрой анимации при любом прикосновении
