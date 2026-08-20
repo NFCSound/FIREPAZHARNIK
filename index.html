@@ -3,20 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>NFCSOUND | Pazharnik</title>
+  <title>PixelPatrick | Limited Pixel Edition</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      /* Отключает синее/серое выделение при тапе на смартфонах */
       -webkit-tap-highlight-color: transparent;
-      /* ПОЛНЫЙ ЗАПРЕТ ВЫДЕЛЕНИЯ И КОНТЕКСТНЫХ МЕНЮ */
       -webkit-touch-callout: none;
       -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
       user-select: none;
     }
 
@@ -57,21 +52,20 @@
       transform: scale(1.1);
     }
 
-    /* Контейнер аватарки с НОВОЙ логикой анимации */
+    /* Контейнер аватарки */
     .avatar-wrapper {
       position: relative;
       z-index: 2;
-      /* Плавный отскок назад (то же время, что и в CSS-переменной JS) */
-      transition: transform 0.1s cubic-bezier(0.1, 0.9, 0.2, 1);
+      /* Плавный мягкий отскок назад при отпускании */
+      transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
       will-change: transform;
-      --tap-time: 0s; /* Переменная для JS, чтобы регулировать скорость замятия */
     }
 
-    /* ЗАЖАТИЕ (Анимация только пока палец давит) */
-    .avatar-wrapper:active {
-      transform: scale(0.93); /* Глубина замятия */
-      /* Используем CSS-переменную, чтобы JS мог менять скорость замятия в зависимости от скорости клика */
-      transition: transform var(--tap-time) cubic-bezier(0.1, 0.9, 0.2, 1);
+    /* Состояние зажатия */
+    .avatar-wrapper.pressed {
+      transform: scale(0.92);
+      /* Мгновенная реакция при касании пальцем */
+      transition: transform 0.05s ease-out;
     }
 
     .avatar {
@@ -83,9 +77,9 @@
       object-fit: cover;
       display: block;
       box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-      /* Запрещает зажимать и перетаскивать саму картинку */
+      /* Блокируем любые взаимодействия с самой картинкой */
+      pointer-events: none;
       -webkit-user-drag: none;
-      user-drag: none;
     }
 
     /* Кнопка "ЗАГЛУШИТЬ" */
@@ -129,13 +123,13 @@
     }
   </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
   <div class="bg-blur"></div>
 
   <div class="wrapper" id="click-area">
     <div class="avatar-wrapper" id="avatar-container">
-      <img src="image.png" alt="Pazharnik" class="avatar">
+      <img src="image.png" alt="PixelPatrick" class="avatar">
     </div>
 
     <button id="mute-button" class="mute-btn">
@@ -151,12 +145,17 @@
     const audio = document.getElementById('alarm-sound');
     const muteBtn = document.getElementById('mute-button');
 
-    // Логика зажатия реализована на CSS (:active), JS только управляет скоростью
+    // Полный запрет контекстного меню (вызова системного окна "Скачать/Скопировать")
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Касание / Зажатие
     clickArea.addEventListener('pointerdown', (e) => {
       if (e.target === muteBtn || muteBtn.contains(e.target)) return;
+      
+      // Вжимаем кнопку
+      avatarContainer.classList.add('pressed');
 
-      // Мгновенный перезапуск звука
-      audio.currentTime = 0;
+      // Воспроизведение аудио ТОЛЬКО если оно на паузе (не сбрасывает текущее воспроизведение)
       if (audio.paused) {
         audio.play().then(() => {
           muteBtn.classList.add('visible');
@@ -164,20 +163,15 @@
           console.log("Ошибка воспроизведения:", err);
         });
       }
-
-      // Настройка времени замятия в CSS ( var(--tap-time) ), чтобы при зажатии было мягче
-      avatarContainer.style.setProperty('--tap-time', '0.1s');
     });
 
-    clickArea.addEventListener('pointerup', () => {
-        // Убираем плавность, когда палец отпустили, чтобы кнопка «отскочила» сразу
-        avatarContainer.style.setProperty('--tap-time', '0s');
-    });
+    // Функция отпускания
+    const releasePress = () => avatarContainer.classList.remove('pressed');
 
-    // Дополнительный фикс: если палец ушёл за экран, тоже «отскакиваем» сразу
-    clickArea.addEventListener('pointerleave', () => {
-        avatarContainer.style.setProperty('--tap-time', '0s');
-    });
+    // Возврат кнопки при отпускании, срыве пальца или уходе за экран
+    clickArea.addEventListener('pointerup', releasePress);
+    clickArea.addEventListener('pointercancel', releasePress);
+    clickArea.addEventListener('pointerleave', releasePress);
 
     // Переход по кнопке
     muteBtn.addEventListener('click', (e) => {
