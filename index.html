@@ -145,17 +145,11 @@
     const audio = document.getElementById('alarm-sound');
     const muteBtn = document.getElementById('mute-button');
 
-    // Полный запрет контекстного меню (вызова системного окна "Скачать/Скопировать")
+    // Запрет контекстного меню
     document.addEventListener('contextmenu', (e) => e.preventDefault());
 
-    // Касание / Зажатие
-    clickArea.addEventListener('pointerdown', (e) => {
-      if (e.target === muteBtn || muteBtn.contains(e.target)) return;
-      
-      // Вжимаем кнопку
-      avatarContainer.classList.add('pressed');
-
-      // Воспроизведение аудио ТОЛЬКО если оно на паузе (не сбрасывает текущее воспроизведение)
+    // Функция запуска звука
+    function playAudio() {
       if (audio.paused) {
         audio.play().then(() => {
           muteBtn.classList.add('visible');
@@ -163,15 +157,25 @@
           console.log("Ошибка воспроизведения:", err);
         });
       }
+    }
+
+    // Касание (вжимаем кнопку)
+    clickArea.addEventListener('pointerdown', (e) => {
+      if (e.target === muteBtn || muteBtn.contains(e.target)) return;
+      avatarContainer.classList.add('pressed');
     });
 
-    // Функция отпускания
-    const releasePress = () => avatarContainer.classList.remove('pressed');
+    // Отпускание (отжимаем кнопку и запускаем звук, если он ещё не играл)
+    const releasePress = (e) => {
+      if (e.target === muteBtn || muteBtn.contains(e.target)) return;
+      
+      avatarContainer.classList.remove('pressed');
+      playAudio();
+    };
 
-    // Возврат кнопки при отпускании, срыве пальца или уходе за экран
     clickArea.addEventListener('pointerup', releasePress);
-    clickArea.addEventListener('pointercancel', releasePress);
-    clickArea.addEventListener('pointerleave', releasePress);
+    clickArea.addEventListener('pointercancel', () => avatarContainer.classList.remove('pressed'));
+    clickArea.addEventListener('pointerleave', () => avatarContainer.classList.remove('pressed'));
 
     // Переход по кнопке
     muteBtn.addEventListener('click', (e) => {
