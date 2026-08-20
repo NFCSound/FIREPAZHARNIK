@@ -22,17 +22,16 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* Главная Flex-оболочка для идеального распределения по высоте */
     .wrapper {
       position: relative;
       width: 100%;
       height: 100vh;
-      height: 100dvh; /* Учитывает реальную высоту экрана мобильного браузера */
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 10vh 0 8vh 0; /* Отступы сверху и снизу */
+      padding: 10vh 0 8vh 0;
       cursor: pointer;
       z-index: 2;
     }
@@ -52,14 +51,20 @@
       transform: scale(1.1);
     }
 
-    /* Контейнер картинки */
+    /* Контейнер аватарки */
     .avatar-wrapper {
       position: relative;
       z-index: 2;
-      transition: transform 0.1s ease;
+      /* Ультрабыстрая анимация возврата */
+      transition: transform 0.05s cubic-bezier(0.1, 0.9, 0.2, 1);
+      will-change: transform;
     }
 
-    /* Картинка как на оригинале */
+    /* Быстрый класс сжатия, управляемый через JS */
+    .avatar-wrapper.pressed {
+      transform: scale(0.93);
+    }
+
     .avatar {
       width: 86vw;
       height: 86vw;
@@ -71,11 +76,7 @@
       box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
     }
 
-    .wrapper:active .avatar-wrapper {
-      transform: scale(0.96);
-    }
-
-    /* Кнопка "ЗАГЛУШИТЬ" строго в стиле оригинала */
+    /* Кнопка "ЗАГЛУШИТЬ" */
     .mute-btn {
       position: relative;
       z-index: 3;
@@ -104,7 +105,6 @@
       gap: 8px;
     }
 
-    /* Появление кнопки */
     .mute-btn.visible {
       opacity: 1;
       visibility: visible;
@@ -119,17 +119,13 @@
 </head>
 <body>
 
-  <!-- Задний фон -->
   <div class="bg-blur"></div>
 
-  <!-- Экранный слой -->
   <div class="wrapper" id="click-area">
-    <!-- Картинка сверху -->
-    <div class="avatar-wrapper">
+    <div class="avatar-wrapper" id="avatar-container">
       <img src="image.png" alt="Pazharnik" class="avatar">
     </div>
 
-    <!-- Кнопка снизу -->
     <button id="mute-button" class="mute-btn">
       🔊 ЗАГЛУШИТЬ
     </button>
@@ -139,9 +135,29 @@
 
   <script>
     const clickArea = document.getElementById('click-area');
+    const avatarContainer = document.getElementById('avatar-container');
     const audio = document.getElementById('alarm-sound');
     const muteBtn = document.getElementById('mute-button');
 
+    // Функция мгновенного пружинящего клика
+    function triggerPulse() {
+      avatarContainer.classList.remove('pressed');
+      // Принудительный сброс кадров браузера для перезапуска анимации
+      void avatarContainer.offsetWidth; 
+      avatarContainer.classList.add('pressed');
+
+      setTimeout(() => {
+        avatarContainer.classList.remove('pressed');
+      }, 50); // 50 миллисекунд — сочный и быстрый отклик
+    }
+
+    // Обработка быстрой анимации при любом прикосновении
+    clickArea.addEventListener('pointerdown', (e) => {
+      if (e.target === muteBtn || muteBtn.contains(e.target)) return;
+      triggerPulse();
+    });
+
+    // Воспроизведение аудио
     clickArea.addEventListener('click', (e) => {
       if (e.target === muteBtn || muteBtn.contains(e.target)) return;
 
@@ -149,11 +165,12 @@
         audio.play().then(() => {
           muteBtn.classList.add('visible');
         }).catch(err => {
-          console.log("Ошибка автовоспроизведения:", err);
+          console.log("Ошибка воспроизведения:", err);
         });
       }
     });
 
+    // Переход по кнопке
     muteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       window.location.href = "https://t.me/WanTime_official";
